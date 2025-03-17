@@ -18,7 +18,7 @@
       height: 100vh;
     }
     .chat-container {
-      width: 350px;
+      width: 300px;
       height: 500px;
       background: #fff;
       border-radius: 10px;
@@ -169,7 +169,7 @@
     function showTypingIndicator() {
       typingIndicator = document.createElement("div");
       typingIndicator.classList.add("message", "bot", "typing");
-      typingIndicator.innerHTML = 'bot is typing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+      typingIndicator.innerHTML = 'বট লিখছে<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
       document.getElementById("messages").appendChild(typingIndicator);
       document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
     }
