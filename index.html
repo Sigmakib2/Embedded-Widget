@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Widget</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -68,23 +67,35 @@
 </div>
 
 <script>
-    const socket = io();
+    document.addEventListener("DOMContentLoaded", loadMessages);
 
     function sendMessage() {
         let message = document.getElementById("message").value;
         if (message.trim() !== "") {
-            socket.emit("chat message", message);
+            addMessageToUI(message);
+            saveMessage(message);
             document.getElementById("message").value = "";
         }
     }
 
-    socket.on("chat message", (msg) => {
+    function addMessageToUI(message) {
         let messages = document.getElementById("messages");
         let messageElement = document.createElement("div");
-        messageElement.textContent = msg;
+        messageElement.textContent = message;
         messages.appendChild(messageElement);
         messages.scrollTop = messages.scrollHeight;
-    });
+    }
+
+    function saveMessage(message) {
+        let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+        chatHistory.push(message);
+        localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    }
+
+    function loadMessages() {
+        let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+        chatHistory.forEach((msg) => addMessageToUI(msg));
+    }
 </script>
 
 </body>
