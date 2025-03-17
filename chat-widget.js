@@ -36,7 +36,7 @@
 
     // Create iframe inside chat window
     var chatIframe = document.createElement("iframe");
-    chatIframe.src = "https://chat.yourdomain.com"; // Change to your hosted chat app
+    chatIframe.src = "https://embedded-widget.pages.dev"; // Change to your hosted chat app
     chatIframe.style.width = "100%";
     chatIframe.style.height = "100%";
     chatIframe.style.border = "none";
