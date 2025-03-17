@@ -6,6 +6,7 @@
   <title>Messenger Style Chat Widget</title>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <style>
+    /* Base styles */
     body {
       margin: 0;
       padding: 0;
@@ -18,7 +19,7 @@
     }
     .chat-container {
       width: 350px;
-      height: 500px;
+      height: 600px;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -40,6 +41,15 @@
       overflow-y: auto;
       background: #f0f0f0;
     }
+    .chat-footer {
+      text-align: center;
+      padding: 5px 0;
+      background: #fff;
+      font-size: 12px;
+      color: #555;
+      border-top: 1px solid #ddd;
+    }
+    /* Message bubbles */
     .message {
       display: block;
       margin-bottom: 10px;
@@ -49,6 +59,7 @@
       word-wrap: break-word;
       font-size: 14px;
       line-height: 1.4;
+      transition: all 0.2s ease;
     }
     .message.user {
       background: #0084ff;
@@ -62,6 +73,27 @@
       border: 1px solid #ccc;
       border-bottom-left-radius: 0;
     }
+    /* Typing indicator styling */
+    .message.typing {
+      font-style: italic;
+      color: #555;
+    }
+    .dot {
+      opacity: 0;
+      display: inline-block;
+      animation: blink 1.4s infinite;
+    }
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0; }
+      40% { opacity: 1; }
+    }
+    /* Chat input styles */
     .chat-input {
       display: flex;
       border-top: 1px solid #ddd;
@@ -82,7 +114,7 @@
       cursor: pointer;
       font-size: 14px;
     }
-    /* Scrollbar customization for Webkit browsers */
+    /* Scrollbar customization */
     .chat-messages::-webkit-scrollbar {
       width: 6px;
     }
@@ -98,19 +130,23 @@
 <body>
 
   <div class="chat-container">
-    <div class="chat-header">Live Chat</div>
+    <div class="chat-header">তথ্য কেন্দ্র</div>
     <div class="chat-messages" id="messages"></div>
     <div class="chat-input">
-      <input type="text" id="message" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
+      <input type="text" id="message" placeholder="এখানে লিখুন ..." />
+      <button onclick="sendMessage()">পাঠান</button>
+    </div>
+    <div class="chat-footer">
+      developed by <a href="https://neunelabs.com/" target="_blank" rel="noopener noreferrer">Neune Labs</a>
     </div>
   </div>
 
   <script>
-    // Maximum history length
-    const MAX_HISTORY_LENGTH = 8; 
+    // Maximum history stored is 10 messages
+    const MAX_HISTORY_LENGTH = 10; 
+    let typingIndicator;
 
-    // Function to save message and keep only the last 8 messages
+    // Save message to localStorage and maintain a maximum of 10 messages
     function saveMessage(message, sender) {
       let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
       chatHistory.push({ [sender]: message });
@@ -120,7 +156,7 @@
       localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
     }
 
-    // Function to load messages from localStorage
+    // Load messages from localStorage
     function loadMessages() {
       let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
       chatHistory.forEach((msg) => {
@@ -129,9 +165,29 @@
       });
     }
 
-    // Function to send message to the API and get the response
+    // Show animated typing indicator
+    function showTypingIndicator() {
+      typingIndicator = document.createElement("div");
+      typingIndicator.classList.add("message", "bot", "typing");
+      typingIndicator.innerHTML = 'bot is typing<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+      document.getElementById("messages").appendChild(typingIndicator);
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    }
+
+    // Remove typing indicator from UI
+    function removeTypingIndicator() {
+      if (typingIndicator) {
+        typingIndicator.remove();
+        typingIndicator = null;
+      }
+    }
+
+    // Send message to the API and get response
     function fetchResponse(userMessage) {
-      let history = JSON.parse(localStorage.getItem("chatHistory")) || [];
+      let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+      // Only send the last 9 messages to the API
+      let historyToSend = chatHistory.slice(-9);
+      showTypingIndicator();
       fetch("https://api.neunelabs.com/v1/endpoint", {
         method: "POST",
         headers: {
@@ -140,22 +196,26 @@
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          history: history,
+          history: historyToSend,
           image: "https://example.com/image.jpg",
           query: userMessage
         })
       })
       .then(response => response.json())
       .then(data => {
+        removeTypingIndicator();
         if (data && data.response) {
           addMessageToUI(data.response, "bot");
-          saveMessage(data.response, "bot"); 
+          saveMessage(data.response, "bot");
         }
       })
-      .catch(error => console.error("Error:", error));
+      .catch(error => {
+        console.error("Error:", error);
+        removeTypingIndicator();
+      });
     }
 
-    // Function to add message to the UI
+    // Add a message bubble to the UI
     function addMessageToUI(message, sender) {
       let messages = document.getElementById("messages");
       let messageElement = document.createElement("div");
@@ -165,7 +225,7 @@
       messages.scrollTop = messages.scrollHeight;
     }
 
-    // Function to send message from the user
+    // Handle sending of user message
     function sendMessage() {
       let message = document.getElementById("message").value;
       if (message.trim() !== "") {
@@ -176,7 +236,7 @@
       }
     }
 
-    // Load existing messages from localStorage when page loads
+    // Load previous chat messages on page load
     window.onload = loadMessages;
   </script>
 
