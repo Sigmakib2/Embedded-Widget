@@ -25,7 +25,7 @@
     chatWindow.style.position = "fixed";
     chatWindow.style.bottom = "80px";
     chatWindow.style.right = "20px";
-    chatWindow.style.width = "350px";
+    chatWindow.style.width = "300px";
     chatWindow.style.height = "500px";
     chatWindow.style.backgroundColor = "#fff";
     chatWindow.style.boxShadow = "0px 4px 8px rgba(0, 0, 0, 0.2)";
