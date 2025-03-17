@@ -1,102 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Widget</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .chat-container {
-            width: 350px;
-            height: 500px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-header {
-            background: #007bff;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-        }
-        .chat-input {
-            display: flex;
-            border-top: 1px solid #ddd;
-        }
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            outline: none;
-        }
-        .chat-input button {
-            padding: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messenger Style Chat Widget</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #e5ddd5;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .chat-container {
+      width: 350px;
+      height: 500px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #0084ff;
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      background: #f0f0f0;
+    }
+    .message {
+      display: block;
+      margin-bottom: 10px;
+      max-width: 75%;
+      padding: 8px 12px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .message.user {
+      background: #0084ff;
+      color: #fff;
+      margin-left: auto;
+      border-bottom-right-radius: 0;
+    }
+    .message.bot {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+      border-bottom-left-radius: 0;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 15px;
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input button {
+      border: none;
+      background: #0084ff;
+      color: #fff;
+      padding: 0 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    /* Scrollbar customization for Webkit browsers */
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: #f0f0f0;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="chat-container">
+  <div class="chat-container">
     <div class="chat-header">Live Chat</div>
     <div class="chat-messages" id="messages"></div>
     <div class="chat-input">
-        <input type="text" id="message" placeholder="Type a message...">
-        <button onclick="sendMessage()">Send</button>
+      <input type="text" id="message" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
     </div>
-</div>
+  </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", loadMessages);
+  <script>
+    // Maximum history length
+    const MAX_HISTORY_LENGTH = 8; 
 
-    function sendMessage() {
-        let message = document.getElementById("message").value;
-        if (message.trim() !== "") {
-            addMessageToUI(message);
-            saveMessage(message);
-            document.getElementById("message").value = "";
-        }
+    // Function to save message and keep only the last 8 messages
+    function saveMessage(message, sender) {
+      let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+      chatHistory.push({ [sender]: message });
+      if (chatHistory.length > MAX_HISTORY_LENGTH) {
+        chatHistory.shift(); // Remove the oldest message
+      }
+      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
     }
 
-    function addMessageToUI(message) {
-        let messages = document.getElementById("messages");
-        let messageElement = document.createElement("div");
-        messageElement.textContent = message;
-        messages.appendChild(messageElement);
-        messages.scrollTop = messages.scrollHeight;
-    }
-
-    function saveMessage(message) {
-        let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-        chatHistory.push(message);
-        localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-    }
-
+    // Function to load messages from localStorage
     function loadMessages() {
-        let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-        chatHistory.forEach((msg) => addMessageToUI(msg));
+      let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+      chatHistory.forEach((msg) => {
+        let sender = Object.keys(msg)[0];
+        addMessageToUI(msg[sender], sender);
+      });
     }
-</script>
+
+    // Function to send message to the API and get the response
+    function fetchResponse(userMessage) {
+      let history = JSON.parse(localStorage.getItem("chatHistory")) || [];
+      fetch("https://api.neunelabs.com/v1/endpoint", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "Authorization": "asx_ckwfML8B7Frity8QVps0oALqEg3OZahxb3nLbsCdzN6Vmyrokz2JiNXkqAjH",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          history: history,
+          image: "https://example.com/image.jpg",
+          query: userMessage
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.response) {
+          addMessageToUI(data.response, "bot");
+          saveMessage(data.response, "bot"); 
+        }
+      })
+      .catch(error => console.error("Error:", error));
+    }
+
+    // Function to add message to the UI
+    function addMessageToUI(message, sender) {
+      let messages = document.getElementById("messages");
+      let messageElement = document.createElement("div");
+      messageElement.classList.add("message", sender);
+      messageElement.textContent = message;
+      messages.appendChild(messageElement);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Function to send message from the user
+    function sendMessage() {
+      let message = document.getElementById("message").value;
+      if (message.trim() !== "") {
+        addMessageToUI(message, "user");
+        saveMessage(message, "user");
+        document.getElementById("message").value = "";
+        fetchResponse(message);
+      }
+    }
+
+    // Load existing messages from localStorage when page loads
+    window.onload = loadMessages;
+  </script>
 
 </body>
 </html>
