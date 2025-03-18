@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Enhanced Interactive Transcript Navigator</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f8f8f8;
+      color: #333;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    /* Header */
+    .header {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .header h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    .search-box {
+      margin-left: auto;
+    }
+    .search-box input {
+      padding: 5px;
+      border: none;
+      border-radius: 3px;
+      font-size: 16px;
+    }
+    /* Container Layout */
+    .container {
+      display: flex;
+      height: calc(100vh - 65px); /* adjust based on header height */
+    }
+    .sidebar {
+      width: 35%;
+      border-right: 1px solid #ccc;
+      padding: 20px;
+      overflow-y: auto;
+      background: #fff;
+      box-sizing: border-box;
+    }
+    .content {
+      width: 65%;
+      padding: 20px;
+      overflow-y: auto;
+      box-sizing: border-box;
+      position: relative;
+      background: #fff;
+    }
+    /* Sidebar Elements */
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 5px;
+      color: #007BFF;
+    }
+    .in-depth {
+      margin-left: 10px;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .context-item {
+      margin-left: 20px;
+      cursor: pointer;
+      padding: 8px;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      margin-bottom: 5px;
+      background: #f0f0f0;
+      transition: background 0.2s ease;
+    }
+    .context-item:hover {
+      background: #e0e0e0;
+    }
+    .context-item.active {
+      background: #d0eaff;
+      border-color: #007BFF;
+    }
+    details {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+    summary {
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .details-container {
+      margin-left: 10px;
+      font-size: 13px;
+      color: #333;
+    }
+    /* Transcript Panel */
+    .transcript-segment {
+      margin: 20px 0;
+      padding: 15px;
+      border-left: 4px solid #007BFF;
+      background: #fafafa;
+      border-radius: 3px;
+    }
+    .transcript-segment p {
+      margin: 5px 0;
+    }
+    .highlight {
+      background-color: #ffffcc;
+      transition: background-color 0.5s ease;
+    }
+    /* Key Takeaways Section */
+    .key-takeaways {
+      margin-top: 40px;
+      padding: 15px;
+      border: 1px solid #007BFF;
+      border-radius: 5px;
+      background: #e7f3ff;
+    }
+    .key-takeaways h3 {
+      margin-top: 0;
+      color: #007BFF;
+    }
+    .key-takeaways ul {
+      list-style: disc;
+      margin-left: 20px;
+    }
+    /* Back to Top Button */
+    .back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 10px 15px;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with Title and Search -->
+  <div class="header">
+    <h1>Interactive Transcript Navigator</h1>
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Filter summary...">
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Summary Sidebar -->
+    <div class="sidebar">
+      <h2>Summary Navigator</h2>
+      <div id="summary"></div>
+    </div>
+
+    <!-- Transcript Content -->
+    <div class="content" id="transcript">
+      <h2>Transcript</h2>
+      <!-- Transcript segments with corresponding IDs -->
+      <div id="segment-1" class="transcript-segment">
+        <strong>[00:00 - 05:00] Meeting Kickoff:</strong>
+        <p>
+          Moderator: Good morning everyone, and welcome to our weekly team meeting.
+          Today, we'll cover project updates, budget review, and upcoming deadlines.
+        </p>
+      </div>
+      <div id="segment-2" class="transcript-segment">
+        <strong>[05:00 - 15:00] Budget Discussion:</strong>
+        <p>
+          Bob: Regarding the budget, I've noticed we might be overspending in the marketing segment.
+          We need to revisit our projections and adjust our allocations.
+        </p>
+      </div>
+      <div id="segment-3" class="transcript-segment">
+        <strong>[15:00 - 25:00] Operational Suggestions:</strong>
+        <p>
+          Carol: I agree with Bob's observations. Additionally, I have some suggestions for streamlining our operations.
+          Perhaps we can cut down on unnecessary expenses and improve efficiency.
+        </p>
+      </div>
+      <div id="segment-4" class="transcript-segment">
+        <strong>[25:00 - 30:00] Next Steps:</strong>
+        <p>
+          Moderator: Thank you all for your updates. Let's move on to discuss the upcoming project deadlines.
+          Alice: Our next milestone is set for the end of the month. We need to ensure all teams are aligned.
+          Bob: I'll coordinate with the finance team to review the budget details.
+          Carol: I'll prepare a detailed plan for the operational changes.
+          Moderator: Great. Let's reconvene next week to track our progress. Meeting adjourned.
+        </p>
+      </div>
+
+      <!-- Key Takeaways Section -->
+      <div class="key-takeaways" id="key-points">
+        <h3>Key Takeaways</h3>
+        <ul id="takeaways-list">
+          <!-- Important points will be injected here -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top" id="backToTop" title="Back to Top">&#8679;</button>
+
+  <script>
+    // Sample structured summary data with in-depth explanations for each section and context.
+    const summaryData = [
+      {
+        section_title: "Meeting Kickoff",
+        in_depth_explanation: "This section introduces the meeting, outlines the agenda, and sets expectations for the discussion. It establishes the tone for the meeting and provides an overview of topics that will be covered.",
+        contexts: [
+          {
+            context_title: "Introduction and Agenda",
+            summary: "Introduced the meeting purpose and outlined the agenda.",
+            detailed_explanation: "The moderator welcomed participants and detailed the agenda which includes project updates, budget discussions, and upcoming deadlines.",
+            transcript_segment: "segment-1",
+            transcript_excerpt: "Good morning everyone, and welcome to our weekly team meeting..."
+          }
+        ]
+      },
+      {
+        section_title: "Budget Discussion & Operational Suggestions",
+        in_depth_explanation: "This section covers discussions on financial oversight and operational improvements. Key budget concerns and cost-saving measures are addressed alongside suggestions to optimize operations.",
+        contexts: [
+          {
+            context_title: "Budget Oversight",
+            summary: "Discussed budget overspending and adjustments.",
+            detailed_explanation: "Bob raised concerns regarding overspending in marketing, prompting a detailed discussion on revising budget projections.",
+            transcript_segment: "segment-2",
+            transcript_excerpt: "I've noticed we might be overspending in the marketing segment..."
+          },
+          {
+            context_title: "Operational Improvements",
+            summary: "Outlined suggestions for streamlining operations.",
+            detailed_explanation: "Carol provided specific recommendations on reducing unnecessary expenses and increasing operational efficiency.",
+            transcript_segment: "segment-3",
+            transcript_excerpt: "I have some suggestions for streamlining our operations..."
+          }
+        ]
+      },
+      {
+        section_title: "Next Steps",
+        in_depth_explanation: "This section focuses on action items and setting clear milestones for the next phase of work. It confirms responsibilities and deadlines for the teams.",
+        contexts: [
+          {
+            context_title: "Action Items",
+            summary: "Reviewed upcoming milestones and delegated responsibilities.",
+            detailed_explanation: "The moderator and team members discussed deadlines and tasks to be followed up, ensuring alignment on next steps and accountability.",
+            transcript_segment: "segment-4",
+            transcript_excerpt: "Let's move on to discuss the upcoming project deadlines..."
+          }
+        ]
+      }
+    ];
+
+    // Sample key takeaways extracted from the transcript.
+    const keyTakeaways = [
+      "The meeting kicked off by outlining the agenda and setting expectations.",
+      "Budget overspending in marketing was flagged, prompting a need for revised projections.",
+      "Operational suggestions were made to improve efficiency and reduce unnecessary expenses.",
+      "Clear action items and milestones were established for the next phase."
+    ];
+
+    // Build the summary navigator with in-depth explanations and expandable details.
+    function buildSummary() {
+      const summaryContainer = document.getElementById("summary");
+      summaryContainer.innerHTML = "";
+      summaryData.forEach(section => {
+        // Section Title
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "section-title";
+        sectionDiv.textContent = section.section_title;
+        summaryContainer.appendChild(sectionDiv);
+
+        // In-Depth Explanation for Section
+        const sectionExplanation = document.createElement("div");
+        sectionExplanation.className = "in-depth";
+        sectionExplanation.textContent = section.in_depth_explanation;
+        summaryContainer.appendChild(sectionExplanation);
+
+        // Contexts for Section
+        section.contexts.forEach(context => {
+          const contextDiv = document.createElement("div");
+          contextDiv.className = "context-item";
+          contextDiv.textContent = context.context_title + ": " + context.summary;
+          contextDiv.dataset.segment = context.transcript_segment;
+
+          // Expandable detailed explanation using <details>
+          const detailsEl = document.createElement("details");
+          detailsEl.className = "details-container";
+          const summaryEl = document.createElement("summary");
+          summaryEl.textContent = "Show Detailed Explanation";
+          const detailedDiv = document.createElement("div");
+          detailedDiv.textContent = context.detailed_explanation;
+          detailsEl.appendChild(summaryEl);
+          detailsEl.appendChild(detailedDiv);
+          contextDiv.appendChild(detailsEl);
+
+          // On click, highlight and scroll to corresponding transcript segment.
+          contextDiv.addEventListener("click", (e) => {
+            // Prevent toggle interference when clicking on details summary
+            if(e.target.tagName.toLowerCase() === "summary") return;
+            // Remove highlight and active state from all summary items and transcript segments.
+            document.querySelectorAll(".transcript-segment").forEach(seg => seg.classList.remove("highlight"));
+            document.querySelectorAll(".context-item").forEach(item => item.classList.remove("active"));
+            // Highlight the clicked context item.
+            contextDiv.classList.add("active");
+            const target = document.getElementById(context.transcript_segment);
+            if (target) {
+              target.classList.add("highlight");
+              target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+          summaryContainer.appendChild(contextDiv);
+        });
+      });
+    }
+
+    // Build key takeaways list.
+    function buildKeyTakeaways() {
+      const takeawaysList = document.getElementById("takeaways-list");
+      takeawaysList.innerHTML = "";
+      keyTakeaways.forEach(point => {
+        const li = document.createElement("li");
+        li.textContent = point;
+        takeawaysList.appendChild(li);
+      });
+    }
+
+    // Filter summary items based on search input.
+    function filterSummary() {
+      const filterValue = document.getElementById("search-input").value.toLowerCase();
+      const contextItems = document.querySelectorAll(".context-item");
+      contextItems.forEach(item => {
+        if(item.textContent.toLowerCase().includes(filterValue)) {
+          item.style.display = "block";
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+
+    // Back to top button logic for transcript pane.
+    function handleScroll() {
+      const backToTopButton = document.getElementById("backToTop");
+      if (document.getElementById("transcript").scrollTop > 200) {
+        backToTopButton.style.display = "block";
+      } else {
+        backToTopButton.style.display = "none";
+      }
+    }
+
+    // Scroll transcript to top when back to top button is clicked.
+    function scrollToTop() {
+      document.getElementById("transcript").scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      buildSummary();
+      buildKeyTakeaways();
+      document.getElementById("search-input").addEventListener("input", filterSummary);
+      document.getElementById("transcript").addEventListener("scroll", handleScroll);
+      document.getElementById("backToTop").addEventListener("click", scrollToTop);
+    });
+  </script>
+</body>
+</html>
